@@ -34,8 +34,9 @@ public class MissingDependency {
             final String serviceName = (String) serviceStatus.get("serviceName");
             final String stateName = (String) serviceStatus.get("stateName");
             services.put(serviceName, stateName);
-            boolean dependencyMissing = (Boolean) serviceStatus.get("dependencyMissing");
-            if (dependencyMissing) {
+            final boolean dependencyMissing = (Boolean) serviceStatus.get("dependencyMissing");
+            final boolean dependencyFailed = (Boolean) serviceStatus.get("dependencyFailed");
+            if (dependencyMissing || dependencyFailed) {
                 servicesMissingDependencies.put(serviceName, serviceStatus);
             }
         }
