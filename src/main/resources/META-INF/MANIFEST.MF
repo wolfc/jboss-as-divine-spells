@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Created-By: Manual Labor
+Implementation-Title: JBoss AS Divine Spells
+Implementation-Vendor-Id: org.jboss.as
+Implementation-Vendor: JBoss, a division of Red Hat, Inc.
+Main-Class: org.jboss.as.divine.spells.MissingDependency
+Class-Path: ${java.home}/lib/tools.jar

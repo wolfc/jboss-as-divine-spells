@@ -28,7 +28,18 @@
                     <archive>
                         <manifest>
                             <mainClass>org.jboss.as.divine.spells.MissingDependency</mainClass>
+                            <!-- doesn't work for system dependencies
+                            <addClasspath>true</addClasspath>
+                            -->
                         </manifest>
+                        <!-- try to disable variable substitution => maven fail
+                        <manifestEntries>
+                            <Class-Path>${java.home}/../lib/tools.jar</Class-Path>
+                        </manifestEntries>
+                        -->
+                        <!-- the JDK itself won't do substitution => fail
+                        <manifestFile>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+                        -->
                     </archive>
                 </configuration>
             </plugin>
@@ -57,6 +68,27 @@
        <url>https://jira.jboss.org/jira/browse/JBAS</url>
     </issueManagement>
     -->
+
+    <profiles>
+        <profile>
+            <id>default-tools.jar</id>
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <value>Sun Microsystems Inc.</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>${java.version}</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <properties>
         <scm.base>wolfc/jboss-as-divine-spells</scm.base>
