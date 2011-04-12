@@ -19,7 +19,7 @@
 
     <build>
         <!-- make it easier to copy it around -->
-        <finalName>${artifactId}</finalName>
+        <finalName>${project.artifactId}</finalName>
 
         <plugins>
             <plugin>
@@ -67,6 +67,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.4</version>
             </plugin>
         </plugins>
     </reporting>
