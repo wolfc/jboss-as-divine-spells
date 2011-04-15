@@ -59,33 +59,79 @@ public class MissingDependency {
                 servicesMissingDependencies.add(serviceName);
             }
         }
+        final Node root = new Node("Missing/failed Dependencies (condensed reverse dependencies)");
+        final Map<String, Node> nodeMap = new HashMap<String, Node>();
         for (final String serviceName : servicesMissingDependencies) {
-            System.out.print(serviceName + " ");
-            final CompositeData service = services.get(serviceName);
+            node(services, serviceName, nodeMap, root);
+        }
+        if(root.hasChildren())
+            show(root);
+        else {
+            assert servicesMissingDependencies.isEmpty();
+            System.out.println("No services with missing dependencies found.");
+        }
+    }
+
+    private static Node node(final Map<String, CompositeData> services, final String serviceName, final Map<String, Node> nodeMap, final Node root) {
+        Node node = nodeMap.get(serviceName);
+        if(node != null)
+            return node;
+        final StringBuffer message = new StringBuffer(serviceName);
+        final CompositeData service = services.get(serviceName);
+        if (service == null) {
+            message.append(" ***MISSING***");
+        } else {
             final String myState = (String) service.get("stateName");
-            if (myState.equals("START_FAILED")) {
-                System.out.print("(START_FAILED)");
-                if (service.containsKey("startExceptionMessage"))
-                    System.out.print(": " + service.get("startExceptionMessage"));
-            }
-            else {
-                System.out.print("-> ");
-                final String[] dependencies = (String[]) service.get("dependencies");
-                for (final String dependency : dependencies) {
-                    String state;
-                    final CompositeData dependencyServiceState = services.get(dependency);
-                    if (dependencyServiceState == null)
-                        state = "***MISSING***";
-                    else
-                        state = (String) dependencyServiceState.get("stateName");
-                    if (!state.equals("UP")) {
-                        System.out.print(" " + dependency + " (" + state + ")");
-                    }
+            message.append(" (" + myState + ")");
+            if (myState.equals("START_FAILED") && service.containsKey("startExceptionMessage"))
+                message.append(": " + service.get("startExceptionMessage"));
+        }
+        node = new Node(message.toString());
+        assert node != null : "node is null for " + serviceName;
+        final Node prev = nodeMap.put(serviceName, node);
+        assert prev == null : "prev is not null";
+        if (service != null) {
+            final String[] dependencies = (String[]) service.get("dependencies");
+            if(dependencies.length > 0)
+                message.append(" -> ");
+            for (final String dependency : dependencies) {
+                final Node parent = node(services, dependency, nodeMap, root);
+                assert parent != null : "can't find parent " + dependency;
+                parent.addChild(node);
+                String state;
+                final CompositeData dependencyServiceState = services.get(dependency);
+                if (dependencyServiceState == null)
+                    state = "***MISSING***";
+                else
+                    state = (String) dependencyServiceState.get("stateName");
+                if (!state.equals("UP")) {
+                    message.append(" " + dependency + " (" + state + ")");
                 }
             }
-            System.out.println();
+            node.setName(message.toString());
+            final String myState = (String) service.get("stateName");
+            if(!myState.equals("UP") && dependencies.length == 0)
+                root.addChild(node);
+        } else
+            root.addChild(node);
+        return node;
+    }
+
+    private static void show(final Node node) {
+        show(node, -1);
+    }
+
+    private static void show(final Node node, final int indent) {
+        // condensed tree, don't show nodes twice
+        if(node.done())
+            return;
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0; i < indent; i++)
+            sb.append("  ");
+        sb.append(node.getName());
+        System.out.println(sb.toString());
+        for(Node child : node.getChildren()) {
+            show(child, indent + 1);
         }
-        if (servicesMissingDependencies.isEmpty())
-            System.out.println("No services with missing dependencies found.");
     }
 }
