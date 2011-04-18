@@ -8,9 +8,9 @@ Either it is missing or has failed to start up.
 
 # Usage
 
-java -jar jboss-as-divine-spells.jar <pid>
+<code>$ java -jar jboss-as-divine-spells.jar <i>pid</i></code>
 
-Where <pid> is the process id of a running JBoss AS 7 instance.
+Where <i>pid</i> is the process id of a running JBoss AS 7 instance.
 
 ## Fine-print
 
