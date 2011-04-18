@@ -22,6 +22,15 @@ import java.util.Map;
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  */
 public class MissingDependency {
+    // MSC-84
+    private static boolean dependencyMissing(CompositeData serviceStatus) {
+        if (serviceStatus.containsKey("dependencyMissing"))
+            return (Boolean) serviceStatus.get("dependencyMissing");
+        else if (serviceStatus.containsKey("dependencyUnavailable"))
+            return (Boolean) serviceStatus.get("dependencyUnavailable");
+        throw new RuntimeException("Service status contains neither dependencyMissing (obsolete) nor dependencyUnavailable (MSC-84)");
+    }
+
     private static String getLocalConnectorAddress(int pid) throws IOException {
         try {
             return ManagementAgentAttacher.getLocalConnectorAddress(pid);
@@ -53,7 +62,7 @@ public class MissingDependency {
         for (final CompositeData serviceStatus : serviceStatuses) {
             final String serviceName = (String) serviceStatus.get("serviceName");
             services.put(serviceName, serviceStatus);
-            final boolean dependencyMissing = (Boolean) serviceStatus.get("dependencyMissing");
+            final boolean dependencyMissing = dependencyMissing(serviceStatus);
             final boolean dependencyFailed = (Boolean) serviceStatus.get("dependencyFailed");
             if (dependencyMissing || dependencyFailed) {
                 servicesMissingDependencies.add(serviceName);
@@ -83,8 +92,8 @@ public class MissingDependency {
         } else {
             final String myState = (String) service.get("stateName");
             message.append(" (" + myState + ")");
-            if (myState.equals("START_FAILED") && service.containsKey("startExceptionMessage"))
-                message.append(": " + service.get("startExceptionMessage"));
+            if (myState.equals("START_FAILED") && service.containsKey("exception"))
+                message.append(": " + service.get("exception"));
         }
         node = new Node(message.toString());
         assert node != null : "node is null for " + serviceName;
