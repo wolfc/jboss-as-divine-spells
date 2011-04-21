@@ -101,8 +101,7 @@ public class MissingDependency {
         assert prev == null : "prev is not null";
         if (service != null) {
             final String[] dependencies = (String[]) service.get("dependencies");
-            if(dependencies.length > 0)
-                message.append(" -> ");
+            int failedDependencies = 0;
             for (final String dependency : dependencies) {
                 final Node parent = node(services, dependency, nodeMap, root);
                 assert parent != null : "can't find parent " + dependency;
@@ -114,12 +113,15 @@ public class MissingDependency {
                 else
                     state = (String) dependencyServiceState.get("stateName");
                 if (!state.equals("UP")) {
+                    if (failedDependencies == 0)
+                        message.append(" -> ");
                     message.append(" " + dependency + " (" + state + ")");
+                    failedDependencies++;
                 }
             }
             node.setName(message.toString());
             final String myState = (String) service.get("stateName");
-            if(!myState.equals("UP") && dependencies.length == 0)
+            if(!myState.equals("UP") && failedDependencies == 0)
                 root.addChild(node);
         } else
             root.addChild(node);
