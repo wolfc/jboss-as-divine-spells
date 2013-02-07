@@ -71,12 +71,33 @@
 
     <profiles>
         <profile>
-            <id>default-tools.jar</id>
+            <id>oracle</id>
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <value>Oracle Corporation</value>
+                </property>
+            </activation>
+            <properties>
+                <use-default-tools>true</use-default-tools>
+            </properties>
+        </profile>
+        <profile>
+            <id>sun</id>
             <activation>
                 <property>
                     <name>java.vendor</name>
                     <value>Sun Microsystems Inc.</value>
                 </property>
+            </activation>
+            <properties>
+                <use-default-tools>true</use-default-tools>
+            </properties>
+        </profile>
+        <profile>
+            <id>default-tools.jar</id>
+            <activation>
+                <property><name>use-default-tools</name></property>
             </activation>
             <dependencies>
                 <dependency>
