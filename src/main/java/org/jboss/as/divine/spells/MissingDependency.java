@@ -59,6 +59,7 @@ public class MissingDependency {
         final CompositeData[] serviceStatuses = (CompositeData[]) connection.invoke(name, "queryServiceStatuses", null, null);
         final Map<String, CompositeData> services = new HashMap<String, CompositeData>();
         final List<String> servicesMissingDependencies = new LinkedList<String>();
+        final List<String> servicesNotUp = new LinkedList<String>();
         for (final CompositeData serviceStatus : serviceStatuses) {
             final String serviceName = (String) serviceStatus.get("serviceName");
             services.put(serviceName, serviceStatus);
@@ -66,6 +67,10 @@ public class MissingDependency {
             final boolean dependencyFailed = (Boolean) serviceStatus.get("dependencyFailed");
             if (dependencyMissing || dependencyFailed) {
                 servicesMissingDependencies.add(serviceName);
+            }
+
+            if (notUp(serviceStatus)) {
+                servicesNotUp.add(serviceName);
             }
         }
         final Node root = new Node("Missing/failed Dependencies (condensed reverse dependencies)");
@@ -79,6 +84,22 @@ public class MissingDependency {
             assert servicesMissingDependencies.isEmpty();
             System.out.println("No services with missing dependencies found.");
         }
+
+        final Node notUp = new Node("Services not up");
+        final Map<String, Node> map = new HashMap<String, Node>();
+        for (final String serviceName : servicesNotUp) {
+            node(services, serviceName, map, notUp);
+        }
+        if(notUp.hasChildren())
+            show(notUp);
+        else {
+            assert servicesNotUp.isEmpty();
+            System.out.println("No services that have not been started found.");
+        }
+    }
+
+    private static boolean notUp(final CompositeData serviceStatus) {
+        return !serviceStatus.get("stateName").equals("UP") && !serviceStatus.get("substateName").equals("WAITING");
     }
 
     private static Node node(final Map<String, CompositeData> services, final String serviceName, final Map<String, Node> nodeMap, final Node root) {
